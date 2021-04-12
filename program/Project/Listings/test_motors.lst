@@ -1,0 +1,75 @@
+C51 COMPILER V9.54   TEST_MOTORS                                                           12/04/2016 14:46:40 PAGE 1   
+
+
+C51 COMPILER V9.54, COMPILATION OF MODULE TEST_MOTORS
+OBJECT MODULE PLACED IN .\Objects\test_motors.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE codes\test_motors.c OPTIMIZE(8,SPEED) BROWSE INCDIR(..\Headers) DEBUG OB
+                    -JECTEXTEND PRINT(.\Listings\test_motors.lst) TABS(2) OBJECT(.\Objects\test_motors.obj)
+
+line level    source
+
+   1          #include "REG_89C51.h"
+   2          #include "general.h"
+   3          #include "lcdp2.h"
+   4          void forward()
+   5          {
+   6   1        P1_4=1; P1_6=0;
+   7   1        P1_5=0; P1_7=1;
+   8   1      }
+   9          void backward() {
+  10   1        P1_4=0; P1_6=1;
+  11   1        P1_5=1; P1_7=0;
+  12   1      }
+  13          int  ultra (void) {
+  14   1        uint time_us,dist;
+  15   1        TL0=0x00; TH0=0x00;
+  16   1        usec(2.7);
+  17   1        TR0=1;
+  18   1      //  P3_2=1;
+  19   1          //while(P3_2);
+  20   1        msec(10);
+  21   1        TR0=0;
+  22   1        time_us=TH0;
+  23   1        time_us=(time_us<<8)+TL0;
+  24   1      //   dist=(time_us/58+66);
+  25   1        return time_us;
+  26   1      }
+*** WARNING C280 IN LINE 14 OF codes\test_motors.c: 'dist': unreferenced local variable
+  27          void main()
+  28          {
+  29   1      //  byte x;
+  30   1        TMOD=0x9;
+  31   1        
+  32   1      //  IT0=1; EX0=1; EA=1;
+  33   1        init_lcd();
+  34   1        while(1) {
+  35   2          usec(5);
+  36   2        P3_4=1;
+  37   2        usec(1.2);
+  38   2        P3_4=0;
+  39   2        usec(1.2);
+  40   2          if(ultra>=0.020) {
+  41   3            lcd_puts(0x87,"no");
+  42   3          }
+  43   2          else {
+  44   3            lcd_puts(0x87,"Yes");
+  45   3        }
+  46   2          
+  47   2        }
+  48   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    401    ----
+   CONSTANT SIZE    =      7    ----
+C51 COMPILER V9.54   TEST_MOTORS                                                           12/04/2016 14:46:40 PAGE 2   
+
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----       7
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----       2
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  1 WARNING(S),  0 ERROR(S)

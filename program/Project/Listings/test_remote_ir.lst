@@ -1,0 +1,111 @@
+C51 COMPILER V9.54   TEST_REMOTE_IR                                                        12/05/2016 18:49:06 PAGE 1   
+
+
+C51 COMPILER V9.54, COMPILATION OF MODULE TEST_REMOTE_IR
+OBJECT MODULE PLACED IN .\Objects\test_remote_ir.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE ..\Sources\test_remote_ir.c OPTIMIZE(8,SPEED) BROWSE INCDIR(..\Headers) 
+                    -DEBUG OBJECTEXTEND PRINT(.\Listings\test_remote_ir.lst) TABS(2) OBJECT(.\Objects\test_remote_ir.obj)
+
+line level    source
+
+   1          #include "REG_89C51.h"
+   2          #include "general.h"
+   3          #include "lcdp2.h"
+   4          
+   5          #define bit_IR P3_7
+   6          
+   7          byte data arr_remote[4];
+   8          
+   9          bit remote()
+  10          {
+  11   1        byte data num,num_bit,len_arr;
+  12   1        uint data time_units;
+  13   1        //=========== 16T =============//
+  14   1        TL0=TH0=0;
+  15   1        TR0=1;  
+  16   1        while(!bit_IR);//bit_IR up
+  17   1          TR0=0; //stop timer
+  18   1        time_units =TH0;
+  19   1        time_units =time_units <<8;//shift left 8
+  20   1          time_units =time_units |TL0; //
+  21   1          if(time_units <11060 && time_units >6248)// check 16T
+  22   1        {
+  23   2           //============= 8T =============// 
+  24   2          TL0=TH0=0;
+  25   2            // TMOD=1;
+  26   2           TR0=1; 
+  27   2          while(bit_IR);//bit_IR down
+  28   2            TR0=0; //stop timer
+  29   2          time_units =TH0;
+  30   2          time_units =time_units <<8;
+  31   2          time_units =time_units |TL0;  
+  32   2          if(time_units <6248 && time_units >3124)
+  33   2          { 
+  34   3           //========= start of Tishdoret =========//
+  35   3            for(len_arr=0;len_arr<4;len_arr++)  
+  36   3                {
+  37   4              num=0;  
+  38   4                  for(num_bit=0;num_bit<8;num_bit++)
+  39   4                {//==== 1T =======//  
+  40   5                        while(!bit_IR);//bit_IR up                
+  41   5                //===== 3T ======//
+  42   5                  //TMOD=1;
+  43   5                  TL0=TH0=0;
+  44   5                  TR0=1;
+  45   5                   while(bit_IR); //bit_IR down
+  46   5                    TR0=0; //stop timer
+  47   5                  time_units =TH0;
+  48   5                    time_units =time_units <<8;
+  49   5                    time_units =time_units |TL0;
+  50   5                       if(time_units <1823 && time_units >1041)//3t
+  51   5                       num|=1<<num_bit;   
+  52   5              }//for8                       
+  53   4                    arr_remote[len_arr]=num;
+  54   4            }//for4   
+C51 COMPILER V9.54   TEST_REMOTE_IR                                                        12/05/2016 18:49:06 PAGE 2   
+
+  55   3          if(arr_remote[0]==~arr_remote[1]) //address && !address
+  56   3                if(arr_remote[2]==~arr_remote[3])
+  57   3                  return 1;
+  58   3          return 0;  
+  59   3           } // 8t
+  60   2            return 0 ;
+  61   2             }//16t check
+  62   1           return 0;
+  63   1      }//end of remote
+  64          
+  65          void main()
+  66          { 
+  67   1          init_lcd();
+  68   1          TMOD=1;//timer 0 mode 1
+  69   1        lcd_puts(0x80,"address  ");
+  70   1        lcd_puts(0xC0,"data     ");
+  71   1       // ==========================================//
+  72   1           while(1)
+  73   1           { 
+  74   2            while(bit_IR);//bit_IR down
+  75   2            if(remote())
+  76   2            {
+  77   3              set_lcd(0,0x88);
+  78   3              set_lcd(1,arr_remote[0]/10+0x30);
+  79   3              set_lcd(1,arr_remote[0]%10+0x30);
+  80   3              set_lcd(0,0xC8);
+  81   3              set_lcd(1,arr_remote[2]/10+0x30);
+  82   3              set_lcd(1,arr_remote[2]%10+0x30);  
+  83   3            }
+  84   2          }
+  85   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    526    ----
+   CONSTANT SIZE    =     20    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      4       5
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----       2
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

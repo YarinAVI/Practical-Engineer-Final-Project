@@ -1,0 +1,105 @@
+C51 COMPILER V9.54   TEST_SR04                                                             12/02/2016 11:41:12 PAGE 1   
+
+
+C51 COMPILER V9.54, COMPILATION OF MODULE TEST_SR04
+OBJECT MODULE PLACED IN .\Objects\test_sr04.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE ..\Sources\test_sr04.c OPTIMIZE(8,SPEED) BROWSE INCDIR(..\Headers) DEBUG
+                    - OBJECTEXTEND PRINT(.\Listings\test_sr04.lst) TABS(2) OBJECT(.\Objects\test_sr04.obj)
+
+line level    source
+
+   1          #include "REG_89C51.h"
+   2          #include "general.h"
+   3          #include "lcd_4.h"
+*** WARNING C318 IN LINE 3 OF ..\Sources\test_sr04.c: can't open file 'lcd_4.h'
+   4          #include "keyb.h"
+*** WARNING C318 IN LINE 4 OF ..\Sources\test_sr04.c: can't open file 'keyb.h'
+   5          #include "dist.h"
+*** WARNING C318 IN LINE 5 OF ..\Sources\test_sr04.c: can't open file 'dist.h'
+   6          
+   7          
+   8          uint dist;//k=0,j=0,m=0,n=0,i=0;
+   9          
+  10          void reverse(void)
+  11          {
+  12   1        while(1) us_sr04(B);   // back
+*** WARNING C206 IN LINE 12 OF ..\Sources\test_sr04.c: 'us_sr04': missing function-prototype
+*** ERROR C267 IN LINE 12 OF ..\Sources\test_sr04.c: 'us_sr04': requires ANSI-style prototype
+  13   1        
+  14   1      }
+  15          
+  16          void distance_forw(void)
+  17          { uint time_us,i;
+  18   1         TL0=0x00; TH0=0x00;
+  19   1        trig1=1;
+*** ERROR C202 IN LINE 19 OF ..\Sources\test_sr04.c: 'trig1': undefined identifier
+  20   1          i=1;i=2;i=3;i=4;i=5;i=6;i=7;i=8; i=9;   //10usec
+  21   1        trig1=0;
+*** ERROR C202 IN LINE 21 OF ..\Sources\test_sr04.c: 'trig1': undefined identifier
+  22   1      
+  23   1         usec(1);//20 usec ;  
+  24   1         usec(1);//20 usec ;
+  25   1      
+  26   1         TR0=1; 
+  27   1         if(echo1){
+*** ERROR C202 IN LINE 27 OF ..\Sources\test_sr04.c: 'echo1': undefined identifier
+  28   2         while(echo1);
+*** ERROR C202 IN LINE 28 OF ..\Sources\test_sr04.c: 'echo1': undefined identifier
+  29   2         TR0=0;
+  30   2      
+  31   2        time_us=TH0;
+  32   2        time_us=(time_us<<8)+TL0;
+  33   2        dist=(time_us/58+66) ; //K=58
+  34   2        set_lcd(0,0x80);
+  35   2        display(dist);}
+  36   1      }
+  37          void distance_backw(void)
+  38          {   uint time_us,i;
+  39   1      
+  40   1         TL0=0x00; TH0=0x00;
+  41   1         trig2=1;
+  42   1          i=1;i=2;i=3;i=4;i=5;i=6;i=7;i=8; i=9;   //10usec
+  43   1        trig2=0;
+  44   1      
+  45   1         usec(1);//20 usec ;  
+C51 COMPILER V9.54   TEST_SR04                                                             12/02/2016 11:41:12 PAGE 2   
+
+  46   1         usec(1);//20 usec ;
+  47   1      
+  48   1        TR0=1; 
+  49   1        if(echo2){
+  50   2        while(echo2);
+  51   2        TR0=0;
+  52   2      
+  53   2        time_us=TH0;
+  54   2        time_us=(time_us<<8)+TL0;
+  55   2        dist=(time_us/58+66) ; //K=58
+  56   2        set_lcd(0,0xc0);
+  57   2        display(dist);
+  58   2        if (dist<250) { //lcd_puts(0x86,"STOP");
+  59   3                           
+  60   3              lcd_puts(0xc7,"Stay away"); }
+  61   2      
+  62   2        else {      lcd_puts(0xc7,"         "); }
+  63   2        }  
+  64   1      }
+  65          
+  66          
+  67          void main()
+  68          {
+  69   1      
+  70   1        trig1=0;
+  71   1        trig2=0;
+  72   1        init_lcd();
+  73   1      
+  74   1        set_lcd(0,0x85);
+  75   1          while(1)
+  76   1           {
+  77   2            distance_backw();  // back
+  78   2            distance_forw();   // forward 
+  79   2          }
+  80   1          
+  81   1      
+  82   1      }
+
+C51 COMPILATION COMPLETE.  4 WARNING(S),  5 ERROR(S)

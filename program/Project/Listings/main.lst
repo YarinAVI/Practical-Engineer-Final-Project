@@ -1,0 +1,439 @@
+C51 COMPILER V9.54   MAIN                                                                  04/20/2017 15:01:54 PAGE 1   
+
+
+C51 COMPILER V9.54, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\Objects\main.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE codes\main.c OPTIMIZE(8,SPEED) BROWSE INCDIR(..\Headers) DEBUG OBJECTEXT
+                    -END PRINT(.\Listings\main.lst) TABS(2) OBJECT(.\Objects\main.obj)
+
+line level    source
+
+   1          // wirtten by Yarin Avisidris & Idan Lisha and guided by Ludmila koz
+   2          #include "REG_89C51.h"
+   3          #include "general.h"
+   4          #include "lcdp2.h"
+   5          #define bit_IR P3_7
+   6          bit flag=0;
+   7          sbit trig=P3^6;
+   8          sbit echo=P3^3; // echo=gate=p3.3
+   9          byte data arr_remote[4];
+  10          byte distances[2];
+  11          uint time,dist;
+  12          //=================== ULTRASONIC SENSOR INTERRUPTS AND FUNTIONS================
+  13          void us_trig() {// trigger function for ultrasonic sensor
+  14   1         trig=1;
+  15   1         nop();nop();nop();// delay of  14us requirements are atleast 10us for sr_04 Trigger
+  16   1         trig=0;
+  17   1        msec(50);
+  18   1      }// end trigger
+  19          void distance() interrupt 2 { // interrupt function (echo falls int1 interrupt)
+  20   1        time =TH1;
+  21   1        time =time<<8;//shift left 8
+  22   1        time =time|TL1; //
+  23   1        dist=time/58;
+  24   1        TH1=TL1=0;
+  25   1        flag=1;
+  26   1      }
+  27          //======================END OF ULTRASONIC SENSOR INTERRUPTS AND FUNCTIONS======
+  28          //====================================REMOTE IR FUNCTION=============================
+  29          
+  30          bit remote()
+  31          {
+  32   1        byte data num,num_bit,len_arr;
+  33   1        uint data time_units;
+  34   1        //=========== 16T =============//
+  35   1      
+  36   1        TL1=TH1=0;
+  37   1        TR1=1;  
+  38   1        while(!bit_IR);//bit_IR up
+  39   1          TR1=0; //stop timer
+  40   1        time_units =TH1;
+  41   1        time_units =time_units <<8;//shift left 8
+  42   1          time_units =time_units |TL1; //
+  43   1          if(time_units <11060 && time_units >6248)// check 16T
+  44   1        {
+  45   2           //============= 8T =============// 
+  46   2          TL1=TH1=0;
+  47   2        
+  48   2           TR1=1; 
+  49   2          while(bit_IR);//bit_IR down
+  50   2            TR1=0; //stop timer
+  51   2          time_units =TH1;
+  52   2          time_units =time_units <<8;
+  53   2          time_units =time_units |TL1;  
+  54   2          if(time_units <6248 && time_units >3124)
+C51 COMPILER V9.54   MAIN                                                                  04/20/2017 15:01:54 PAGE 2   
+
+  55   2          { 
+  56   3           //========= start of transmitting(DATA) =========//
+  57   3            for(len_arr=0;len_arr<4;len_arr++)  
+  58   3                {
+  59   4              num=0;  
+  60   4                  for(num_bit=0;num_bit<8;num_bit++)
+  61   4                {//==== 1T =======//  
+  62   5                        while(!bit_IR);//bit_IR up                
+  63   5                //===== 3T ======//
+  64   5                  //TMOD=1;
+  65   5                  TL1=TH1=0;
+  66   5                  TR1=1;
+  67   5                   while(bit_IR); //bit_IR down
+  68   5                    TR1=0; //stop timer
+  69   5                  time_units =TH1;
+  70   5                    time_units =time_units <<8;
+  71   5                    time_units =time_units |TL1;
+  72   5                       if(time_units <1823 && time_units >1041)//3t
+  73   5                       num|=1<<num_bit;   
+  74   5              }//for8                       
+  75   4                    arr_remote[len_arr]=num;
+  76   4            }//for4   
+  77   3          if(arr_remote[0]==~arr_remote[1]) //address && !address
+  78   3                if(arr_remote[2]==~arr_remote[3])
+  79   3                  return 1;
+  80   3          return 0;  
+  81   3           } // 8t
+  82   2            return 0 ;
+  83   2             }//16t check
+  84   1           return 0;
+  85   1      }
+  86          //====================================== END OF REMOTE FUNCTION================
+  87          //============================== Start of DC motors functions=====================
+  88          void forward()
+  89          {
+  90   1        P1_0=0; P1_2=1;
+  91   1        P1_1=1; P1_3=0;
+  92   1      
+  93   1      }
+  94          void backward() {
+  95   1        P1_0=1; P1_2=0;
+  96   1        P1_1=0; P1_3=1;
+  97   1      
+  98   1      }
+  99          void left() {
+ 100   1        P1_0=1; P1_2=1;
+ 101   1        P1_1=0; P1_3=0;
+ 102   1      
+ 103   1      }
+ 104          void right() {
+ 105   1        P1_0=0; P1_2=0;
+ 106   1        P1_1=1; P1_3=1;
+ 107   1      
+ 108   1        
+ 109   1      }
+ 110          void motorstop() {
+ 111   1        P1_0=0; P1_2=0;
+ 112   1        P1_1=0; P1_3=0;
+ 113   1        
+ 114   1      }
+ 115          void servo_x(bit control) {
+ 116   1        if(control==1 & CCAP2H>230 ) CCAP2H--; // 1 LOGIC AT CONTROL IS ADDIN ANGLE
+C51 COMPILER V9.54   MAIN                                                                  04/20/2017 15:01:54 PAGE 3   
+
+ 117   1        if(control==0 & CCAP2H<244 ) CCAP2H++; // 0 LOGIC AT CONTROL IS SUB ANGLE
+ 118   1        } 
+ 119          void servo_y(bit control) {
+ 120   1        if(control==1 & CCAP3H>230 ) CCAP3H--; // 1 LOGIC AT CONTROL IS ADDIN ANGLE
+ 121   1        if(control==0 & CCAP3H<244 ) CCAP3H++; // 0 LOGIC AT CONTROL IS SUB ANGLE
+ 122   1        }
+ 123          void servo_init() {
+ 124   1        CCAP1H=244;
+ 125   1        CCAP2H=244;
+ 126   1        CCAP3H=244;
+ 127   1        CCAP4H=244;
+ 128   1      }
+ 129          //============================= end of DC Motors functions==========================
+ 130          void control() {
+ 131   1        while(1) {
+ 132   2          us_trig();
+ 133   2                  while(!flag);
+ 134   2                  flag=0;
+ 135   2      //    if(dist<10) right();
+ 136   2           if (dist>50)  {
+ 137   3             msec(1000);
+ 138   3            left();
+ 139   3            msec(1100);
+ 140   3            forward();
+ 141   3            msec(2000);
+ 142   3            motorstop();
+ 143   3            while(1);
+ 144   3          }
+ 145   2      //    else if (dist>10) left();
+ 146   2      //    else forward();
+ 147   2        }
+ 148   1      }
+ 149          void main()
+ 150          { 
+ 151   1      //  TMOD=0x02;
+ 152   1      //  TH0=0xB8;
+ 153   1      //  TL0=0xB8;
+ 154   1      //  TR0=1;
+ 155   1      //  CCAPM1=0x42;
+ 156   1      //  CMOD=4;
+ 157   1      //  CCON=0x40;
+ 158   1      //  while(1) {
+ 159   1      //    CCAP1H=244; 244 = zero angle 0.9m pulse
+ 160   1      //    msec(2000);
+ 161   1      //    CCAP1H=230; 230 = maximum angle 
+ 162   1      //    msec(2000);
+ 163   1        
+ 164   1        
+ 165   1      
+ 166   1        bit A=0,B=0;
+ 167   1        byte f;
+ 168   1        byte distf=0;
+ 169   1        byte prev=10000;
+ 170   1        init_lcd();
+ 171   1        servo_init();
+ 172   1        start:
+ 173   1        TMOD=0x12;//timer 0 8 bit auto reload pwm for servo motor, timer1 mode1(ir config)
+ 174   1        //EA=1; // enable all interrupts
+ 175   1        //EX0=1; // enable interrupt int0
+ 176   1        //IT0=1; // falling edge ( echo falls when sound returned then program jumps into interrupt 0 function )
+ 177   1        //TR0=1; // running timer 0 TIMER 0 STOPS COUNTING WHEN GATE FALLS ( tr0 constant 1)
+ 178   1          TH0=0xB8;
+C51 COMPILER V9.54   MAIN                                                                  04/20/2017 15:01:54 PAGE 4   
+
+ 179   1        TL0=0xB8;
+ 180   1        TR0=1;
+ 181   1        CCAPM1=0x42;
+ 182   1        CCAPM2=0x42;
+ 183   1        CCAPM3=0x42;
+ 184   1        CCAPM4=0x42;
+ 185   1        CMOD=4;
+ 186   1        CCON=0x40;
+ 187   1        while(bit_IR) lcd_puts(0x84,"IR wait");//waiting for steady mode to fall (start of comm) 
+ 188   1          lcd_clr();
+ 189   1           while(1)
+ 190   1           {
+ 191   2             if(remote()){
+ 192   3              switch(arr_remote[2]) {
+ 193   4                case _plus: lcd_clr(); forward(); break;
+ 194   4                case _minus: lcd_clr(); backward();break;
+ 195   4                case _play: lcd_clr(); motorstop();break;
+ 196   4                case _left: lcd_clr(); left();break;
+ 197   4                case _right: lcd_clr(); right();break;
+ 198   4                case _6:  lcd_clr();  servo_x(1); break;
+ 199   4                case _4: lcd_clr(); servo_x(0); break;
+ 200   4                case _5: lcd_clr(); 
+ 201   4                          if(CCAP4H==244) CCAP4H=230; else CCAP4H=244; break; // open/close 
+ 202   4                case _2: lcd_clr(); servo_y(0); break;
+ 203   4                case _8: lcd_clr(); servo_y(1); break;    
+ 204   4                case _spin: if(CCAP1H==244) CCAP1H=234; else CCAP1H=244; break;         
+ 205   4                case _test: lcd_clr();   TMOD=0x92; // timer 1 int1 interrupt for ultrasonic timer0 8bit autoreload f
+             -or pwm
+ 206   4                  EX1=1; //enabling interrupt 1
+ 207   4                  TR1=1; // running timer 1, timer runs when gate is 1.
+ 208   4                  IT1=1; // falling edge interrupt 1
+ 209   4                  EA=1; // enabling all interrupts
+ 210   4                  TL1=TH1=0;
+ 211   4                  CCAP2H=238; // arm in middle
+ 212   4      //          forward();
+ 213   4      //          control();
+ 214   4      //          while(1) {
+ 215   4      //                        us_trig();
+ 216   4      //            while(!flag);
+ 217   4      //            flag=0;
+ 218   4      //  set_lcd(0,0x85);
+ 219   4      //  set_lcd(1,dist/100+0x30);
+ 220   4      //  dist=dist%100;
+ 221   4      //  set_lcd(1,dist/10+0x30);
+ 222   4      //  set_lcd(1,dist%10+0x30);
+ 223   4      //          }
+ 224   4                while(1) 
+ 225   4                {
+ 226   5      
+ 227   5                              while(1) {
+ 228   6                                A=0;
+ 229   6                                B=0;
+ 230   6                                while(A==0) { 
+ 231   7                                
+ 232   7                    //CCAP1H=244;
+ 233   7                  //  while(CCAP1H==244) {      
+ 234   7                  forward();
+ 235   7                  msec(550);
+ 236   7                  motorstop();
+ 237   7                            for(f=0;f<2;f++) {  
+ 238   8                  us_trig();
+ 239   8                  while(!flag);
+C51 COMPILER V9.54   MAIN                                                                  04/20/2017 15:01:54 PAGE 5   
+
+ 240   8                  flag=0;
+ 241   8                  if(dist<=10) {
+ 242   9                    lcd_puts(0x84,"B");
+ 243   9                  A=1;
+ 244   9                  motorstop();
+ 245   9                  }
+ 246   8                  us_trig();
+ 247   8                  while(!flag);
+ 248   8                  flag=0;
+ 249   8      //            if(dist<=20) B=1;
+ 250   8      //            else B=0;
+ 251   8                  
+ 252   8                }
+ 253   7                            
+ 254   7      
+ 255   7                  // if(B==0) { 
+ 256   7                     if(A==0) {
+ 257   8                    CCAP1H=234;
+ 258   8                  msec(400);
+ 259   8                     for(f=0;f<2;f++) {
+ 260   9                  us_trig();
+ 261   9                  while(!flag);
+ 262   9                  flag=0;
+ 263   9                  if(dist>50) {
+ 264  10                    lcd_puts(0x84,"A");
+ 265  10                    forward();
+ 266  10                    msec(250);
+ 267  10                    left();
+ 268  10                    msec(800);
+ 269  10                    motorstop();
+ 270  10                    forward();
+ 271  10                    msec(3000);
+ 272  10                    motorstop();
+ 273  10                    goto start;
+ 274  10                  }
+ 275   9                  ///////
+ 276   9                  ///////           MOVING STRAIGHT CONTROL 
+ 277   9                  ///////
+ 278   9                  ///////
+ 279   9                  if(dist<=13) {
+ 280  10                    right();
+ 281  10                      while(dist<=prev) {
+ 282  11                    us_trig();
+ 283  11                  while(!flag);
+ 284  11                  flag=0;
+ 285  11                    prev=dist;
+ 286  11                  us_trig();
+ 287  11                  while(!flag);
+ 288  11                  flag=0;
+ 289  11                    }
+ 290  10                      motorstop();
+ 291  10                  }
+ 292   9                  if(dist>=15) {
+ 293  10                   left();              
+ 294  10                    while(dist>=prev) {
+ 295  11                    us_trig();
+ 296  11                  while(!flag);
+ 297  11                  flag=0;
+ 298  11                    prev=dist;
+ 299  11                  us_trig();
+ 300  11                  while(!flag);
+ 301  11                  flag=0;
+C51 COMPILER V9.54   MAIN                                                                  04/20/2017 15:01:54 PAGE 6   
+
+ 302  11                    }
+ 303  10                    motorstop();
+ 304  10                  }
+ 305   9                  //msec(500);
+ 306   9                  CCAP1H=244;
+ 307   9                
+ 308   9                }
+ 309   8              }
+ 310   7            
+ 311   7                }
+ 312   6                  
+ 313   6                  
+ 314   6                
+ 315   6                
+ 316   6                  CCAP1H=234;
+ 317   6                  msec(250);
+ 318   6                  while(A==1 ) {
+ 319   7                    B=0;
+ 320   7                    right();
+ 321   7                    lcd_puts(0x84,"C");
+ 322   7                    
+ 323   7                    while(dist<=prev) {
+ 324   8                    us_trig();
+ 325   8                  while(!flag);
+ 326   8                  flag=0;
+ 327   8                    prev=dist;
+ 328   8                    msec(700);
+ 329   8                  us_trig();
+ 330   8                  while(!flag);
+ 331   8                  flag=0;
+ 332   8                    }
+ 333   7                    CCAP1H=244;
+ 334   7                    A=0;
+ 335   7                    B=0;
+ 336   7                    motorstop();
+ 337   7                    
+ 338   7      
+ 339   7                  }
+ 340   6                  
+ 341   6                }
+ 342   5                  
+ 343   5                  
+ 344   5                  
+ 345   5                  
+ 346   5                  
+ 347   5            // LAST PROGRAM STARTS HERE ___     
+ 348   5                  
+ 349   5                  
+ 350   5                  
+ 351   5                  
+ 352   5                  
+ 353   5                  
+ 354   5                  
+ 355   5                  
+ 356   5                  
+ 357   5              forward();
+ 358   5                while(CCAP1H==244) {
+ 359   6                                
+ 360   6                  us_trig();
+ 361   6                  while(!flag);
+ 362   6                  flag=0;
+ 363   6                  distf=dist;
+C51 COMPILER V9.54   MAIN                                                                  04/20/2017 15:01:54 PAGE 7   
+
+ 364   6                  if(distf<=11) {
+ 365   7                    motorstop();
+ 366   7                    CCAP1H=234;
+ 367   7      
+ 368   7                  } 
+ 369   6                }
+ 370   5      
+ 371   5                  
+ 372   5                  while(CCAP1H==234) {
+ 373   6                    
+ 374   6                  right();
+ 375   6                    
+ 376   6                    while(dist<=prev) {
+ 377   7                    us_trig();
+ 378   7                  while(!flag);
+ 379   7                  flag=0;
+ 380   7                    prev=dist;
+ 381   7                    msec(850);
+ 382   7                  us_trig();
+ 383   7                  while(!flag);
+ 384   7                  flag=0;
+ 385   7                    }
+ 386   6                    motorstop();
+ 387   6                    CCAP1H=244;
+ 388   6                    
+ 389   6      
+ 390   6      
+ 391   6                    
+ 392   6                    
+ 393   6                    
+ 394   6                    
+ 395   6      // end of whle(cccap1) 244
+ 396   6              }//end of while(ccap1 234)
+ 397   5              }// end of while(1)
+ 398   4            }//end of case
+ 399   3          }//end of if(remote())
+ 400   2        }//end of while(1)
+ 401   1        }//end of main functio
+*** WARNING C294 IN LINE 357 OF codes\main.c: unreachable code
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1344    ----
+   CONSTANT SIZE    =     14    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     10       8
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =      1       6
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  1 WARNING(S),  0 ERROR(S)

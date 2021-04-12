@@ -1,0 +1,40 @@
+C51 COMPILER V9.54   ROBOTBT                                                               12/11/2016 11:33:14 PAGE 1   
+
+
+C51 COMPILER V9.54, COMPILATION OF MODULE ROBOTBT
+OBJECT MODULE PLACED IN .\Objects\robotBT.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE ..\Sources\robotBT.c OPTIMIZE(8,SPEED) BROWSE INCDIR(..\Headers) DEBUG O
+                    -BJECTEXTEND PRINT(.\Listings\robotBT.lst) TABS(2) OBJECT(.\Objects\robotBT.obj)
+
+line level    source
+
+   1          #include "REG_89C51.h"
+   2          #include "general.h"
+*** WARNING C329 IN LINE 12 OF ..\Headers\general.h: single-line comment contains line-continuation
+*** WARNING C329 IN LINE 32 OF ..\Headers\general.h: single-line comment contains line-continuation
+   3          
+   4          
+   5          
+   6          void main()
+   7          {
+   8   1        while(1){
+   9   2          P3_4=1;
+  10   2          usec(1);
+  11   2          P3_4=0;
+  12   2          usec(1);
+  13   2      }
+  14   1        }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     76    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  2 WARNING(S),  0 ERROR(S)

@@ -1,0 +1,36 @@
+(ExpressProject "Design4"
+  (ProjectVersion "19981106")
+  (ProjectType "PCB")
+  (Folder "Design Resources"
+    (Folder "Library"
+      (File "library2.olb"
+        (Type "Schematic Library"))
+      (File
+         "C:\Users\owner\Documents\STUDENT`S PROJECTS\2016\techni\Mesi & Noam\schema\LIBRARY3.OLB"
+        (Type "Schematic Library")))
+    (NoModify)
+    (File ".\design4.dsn"
+      (Type "Schematic Design"))
+    (BuildFileAddedOrDeleted "x")
+    (CompileFileAddedOrDeleted "x"))
+  (Folder "Outputs")
+  (Folder "Referenced Projects")
+  (GlobalState
+    (FileView
+      (Path "Design Resources")
+      (Path "Design Resources"
+         "C:\USERS\OWNER\DOCUMENTS\STUDENT`S PROJECTS\2015\AMAL\SHAHAF & MENI\schema\design4.dsn")
+      (Path "Design Resources"
+         "C:\USERS\OWNER\DOCUMENTS\STUDENT`S PROJECTS\2015\AMAL\SHAHAF & MENI\schema\design4.dsn"
+         "SCHEMATIC1")
+      (Select "Design Resources"
+         "C:\USERS\OWNER\DOCUMENTS\STUDENT`S PROJECTS\2015\AMAL\SHAHAF & MENI\schema\design4.dsn"
+         "SCHEMATIC1" "PAGE1"))
+    (HierarchyView)
+    (Doc
+      (Type "COrCapturePMDoc")
+      (Frame
+        (Placement "44 2 3 -1 -1 -8 -31 0 200 0 362"))
+      (Tab 0)))
+  (PartMRUSelector)
+  (MPSSessionName "owner"))
